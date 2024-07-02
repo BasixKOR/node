@@ -206,7 +206,7 @@ CompileCacheEntry* CompileCacheHandler::GetOrInsert(
   result->code_size = code_utf8.length();
   result->cache_key = key;
   result->cache_filename =
-      compile_cache_dir_ + kPathSeparator + Uint32ToHex(result->cache_key);
+      (compile_cache_dir_ / Uint32ToHex(result->cache_key)).string();
   result->source_filename = filename_utf8.ToString();
   result->cache = nullptr;
   result->type = type;
@@ -354,7 +354,7 @@ bool CompileCacheHandler::InitializeDirectory(Environment* env,
         cache_dir);
 
   if (UNLIKELY(!env->permission()->is_granted(
-          permission::PermissionScope::kFileSystemWrite, cache_dir))) {
+          env, permission::PermissionScope::kFileSystemWrite, cache_dir))) {
     Debug("[compile cache] skipping cache because write permission for %s "
           "is not granted\n",
           cache_dir);
@@ -362,7 +362,7 @@ bool CompileCacheHandler::InitializeDirectory(Environment* env,
   }
 
   if (UNLIKELY(!env->permission()->is_granted(
-          permission::PermissionScope::kFileSystemRead, cache_dir))) {
+          env, permission::PermissionScope::kFileSystemRead, cache_dir))) {
     Debug("[compile cache] skipping cache because read permission for %s "
           "is not granted\n",
           cache_dir);
@@ -380,7 +380,7 @@ bool CompileCacheHandler::InitializeDirectory(Environment* env,
     return false;
   }
 
-  compile_cache_dir_ = cache_dir;
+  compile_cache_dir_ = std::filesystem::path(cache_dir);
   return true;
 }
 
